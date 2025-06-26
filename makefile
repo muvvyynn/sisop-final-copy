@@ -21,10 +21,13 @@ build: prepare asm library link
 run:
 # TODO: adjust to your local bochs path
 # wsl:
-	bochs.exe
+#	bochs.exe
 # linux:
-#	bochs
+	bochs -f bochsrc.txt
 
 generate:
 	gcc test/generate.c test/testlib -o bin/generate
 	bin/generate ${test}
+
+clean:
+	rm -f bin/*.o bin/*.bin bin/*.img bin/kernel.bin bin/bootloader/bin
