@@ -24,17 +24,15 @@ void fsRead(struct file_metadata* metadata, enum fs_return* status) {
 
   readSector(&data_fs_buf, FS_DATA_SECTOR_NUMBER);
   readSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);
-  readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER);
-
-  // cara tau direktori gmn? oh == 0xff
+  readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);
 
   for(i = 0; i < FS_MAX_NODE; i++)
   { 
     if(!strcmp(node_fs_buf.nodes[i].node_name, metadata->node_name) && metadata->parent_index == node_fs_buf.nodes[i].parent_index) {found = true; index = i; break;} 
   }
 
-  if(found == false) {*status = FS_R_NODE_NOT_FOUND; return;}
-  if(node_fs_buf.nodes[index].data_index == FS_NODE_D_DIR) {*status = FS_R_TYPE_IS_DIRECTORY; return;}
+  if(found == false) {status = FS_R_NODE_NOT_FOUND; return;}
+  if(node_fs_buf.nodes[index].data_index == FS_NODE_D_DIR) {status = FS_R_TYPE_IS_DIRECTORY; return;}
   
   metadata->filesize=0;
   index_data = node_fs_buf.nodes[index].data_index;
@@ -46,7 +44,7 @@ void fsRead(struct file_metadata* metadata, enum fs_return* status) {
     metadata->filesize += SECTOR_SIZE;
   }
 
-  *status = FS_R_SUCCESS;
+  status = FS_SUCCESS;
 }
 
 // TODO: 3. Implement fsWrite function
@@ -66,24 +64,24 @@ void fsWrite(struct file_metadata* metadata, enum fs_return* status) {
 
   readSector(&data_fs_buf, FS_DATA_SECTOR_NUMBER);
   readSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);
-  readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER);
+  readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);
   readSector(&map_fs_buf, FS_MAP_SECTOR_NUMBER);
 
   for(i = 0; i < FS_MAX_NODE; i++)
   { 
-    if(strcmp(node_fs_buf.nodes[i].node_name, metadata->node_name) == 0 && metadata->parent_index == node_fs_buf.nodes[i].parent_index) {*status = FS_W_NODE_ALREADY_EXISTS; return;} 
+    if(strcmp(node_fs_buf.nodes[i].node_name, metadata->node_name) == 0 && metadata->parent_index == node_fs_buf.nodes[i].parent_index) {status = FS_W_NODE_ALREADY_EXISTS; return;} 
   }
   
   for (i = 0; i < FS_MAX_NODE; i++) {
     if (node_fs_buf.nodes[i].node_name == '\0') {found_node = true; node_index = i; break;}
   }
-  if(!found_node) {*status = FS_W_NO_FREE_NODE; return;}
+  if(!found_node) {status = FS_W_NO_FREE_NODE; return;}
 
   for (i = 0; i < FS_MAX_DATA; i++)
   {
     if(data_fs_buf.datas[node_index].sectors[i] == 0x00) {found_data-true;data_index=i;break;}
   }
-  if(!found_data) {*status = FS_W_NO_FREE_DATA; return;}
+  if(!found_data) {status = FS_W_NO_FREE_DATA; return;}
 
   for (i = 0; i < SECTOR_SIZE; i++)
   {
@@ -93,7 +91,7 @@ void fsWrite(struct file_metadata* metadata, enum fs_return* status) {
   size = metadata->filesize/SECTOR_SIZE;
   if(mod(metadata->filesize,SECTOR_SIZE) != 0) size++;
 
-  if(size > count) {*status = FS_W_NOT_ENOUGH_SPACE; return;}
+  if(size > count) {status = FS_W_NOT_ENOUGH_SPACE; return;}
 
   strcpy(node_fs_buf.nodes[node_index].node_name, metadata->node_name);
   node_fs_buf.nodes[node_index].parent_index = metadata->parent_index;
@@ -114,5 +112,5 @@ void fsWrite(struct file_metadata* metadata, enum fs_return* status) {
   writeSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);
   writeSector(&data_fs_buf, FS_DATA_SECTOR_NUMBER);
   
-  *status = FS_W_SUCCESS;
+  status = FS_SUCCESS;
 }
