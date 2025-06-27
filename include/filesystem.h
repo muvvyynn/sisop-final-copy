@@ -11,10 +11,13 @@
 
 #define FS_NODE_P_ROOT 0xFF
 #define FS_NODE_D_DIR 0xFF
+#define FS_NODE_S_IDX_FOLDER 0xFF
 
 #define FS_MAX_NODE 64
 #define FS_MAX_DATA 32
 #define FS_MAX_SECTOR 16
+#define FS_SECTOR_SIZE 512
+
 
 struct map_fs {
   bool is_used[SECTOR_SIZE];
@@ -43,6 +46,8 @@ struct file_metadata {
   unsigned int filesize;
   char node_name[MAX_FILENAME];
   byte buffer[FS_MAX_SECTOR * SECTOR_SIZE];
+  
+  unsigned int buffer_size;
 };
 
 enum fs_return {
